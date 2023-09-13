@@ -1,9 +1,11 @@
-# Purpose
+# WF Survey Point Code Checker
+
+### Purpose
 
 The purpose of this program is to allow the user to quickly check for point  codes
 that are inconsistent with Walterfedy point code standards.
 
-# Prerequisites
+### Prerequisites
 
 1. Ensure python3 and its dependencies are installed as per the installation
    guide in the support folder.
@@ -14,7 +16,7 @@ that are inconsistent with Walterfedy point code standards.
    'codes.xlsx'.
 4. Rename the survey file to 'survey.xlsx'.
 
-# Run the Program
+### Run the Program
 
 1. Navigate to the folder in the file explorer containing 'point_checker.py', 
    'codes.xlsx', and 'survey.xlsx'.
@@ -25,6 +27,6 @@ that are inconsistent with Walterfedy point code standards.
    workbook with point numbers requiring the user's attention, including vlookup
    columns referencing the corresponding data for review.
 
-# Support Contact Information
+### Support Contact Information
 
 Joseph Monighan
