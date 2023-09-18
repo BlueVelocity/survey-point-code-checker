@@ -17,7 +17,7 @@ that are inconsistent with Walterfedy point code standards.
 # Run the Program
 
 1. Navigate to the folder in the file explorer containing 'point_checker.py', 
-   'codes.xlsx'.
+   'codes.xlsx', and 'survey.xlsx'.
 2. Click the address bar at the top of the file explorer, type 'cmd', and press Enter.
 3. In the command prompt, copy and paste the following command and press Enter:
 	python3 point_checker.py

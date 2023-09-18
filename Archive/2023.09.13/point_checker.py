@@ -1,33 +1,28 @@
 import openpyxl
+from openpyxl import Workbook
 import re
-import easygui
-import sys
 
 #opens codes file and creates a list of codes for comparison
-try:
-    path_codes = "codes.xlsx"
-    codes_wb_obj = openpyxl.load_workbook(path_codes)
-    code_sheet_obj = codes_wb_obj.active
-    code_rows = code_sheet_obj.max_row
-except:
-    sys.exit("Error finding codes.xlsx file")
-else:
-    codes = []
-    for i in range(5, code_rows):
-        cell_obj = code_sheet_obj.cell(row = i, column = 1)
-        codes.append(cell_obj.value)
+path_codes = "codes.xlsx"
+codes_wb_obj = openpyxl.load_workbook(path_codes)
+code_sheet_obj = codes_wb_obj.active
+code_rows = code_sheet_obj.max_row
+
+codes = []
+
+for i in range(5, code_rows):
+    cell_obj = code_sheet_obj.cell(row = i, column = 1)
+    codes.append(cell_obj.value)
 
 #opens survey file and creates a list of points for comparison
-try:
-    path_surv = easygui.fileopenbox()
-    surv_wb_obj = openpyxl.load_workbook(path_surv)
-    surv_sheet_obj = surv_wb_obj.active
-    surv_rows = surv_sheet_obj.max_row
-except:
-    sys.exit("Error finding survey file")
-    
-#removes numbers from codes for checking
+path_surv = "survey.xlsx"
+surv_wb_obj = openpyxl.load_workbook(path_surv)
+surv_sheet_obj = surv_wb_obj.active
+surv_rows = surv_sheet_obj.max_row
+
 cleaned_points =[]
+
+#removes numbers from codes for checking
 for i in range(1, surv_rows):
     cell_num_obj = surv_sheet_obj.cell(row = i, column = 1)
     cell_code_obj = surv_sheet_obj.cell(row = i, column = 5)
@@ -55,25 +50,13 @@ points_with_weird_codes = []
 for i in cleaned_points:
     for code in range(1, len(i)):
         code_for_check = i[code]
-        if (len(points_with_weird_codes) != 0):
-            if (i[0] == points_with_weird_codes[-1]):
-                continue
-            else:
-                is_present = False
-                for check_code in codes:
-                    if (code_for_check == check_code):
-                        is_present = True
-                
-                if (is_present == False):
-                    points_with_weird_codes.append(i[0])
-        else:
-            is_present = False
-            for check_code in codes:
-                if (code_for_check == check_code):
-                    is_present = True
-            
-            if (is_present == False):
-                points_with_weird_codes.append(i[0])
+        is_present = False
+        for check_code in codes:
+            if (code_for_check == check_code):
+                is_present = True
+        
+        if (is_present == False):
+            points_with_weird_codes.append(i[0])
 
 #create and write to new sheet in survey file workbook,
 #creates vlookups to show corresponding data in new sheet
