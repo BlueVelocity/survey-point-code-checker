@@ -5,6 +5,16 @@ import easygui
 import sys
 import re
 
+def unidentified_error_handler(func):
+    def wrapper(*args):
+        try:
+            return func(*args)
+        except:
+            print(f'Action stopped at {func.__name__}')
+            sys.exit(0)
+    return wrapper
+
+@unidentified_error_handler
 def prompt_continue(msg):
     title = 'Please confirm'
     if easygui.ccbox(msg, title):
@@ -13,7 +23,7 @@ def prompt_continue(msg):
         print('User cancelled action')
         sys.exit(0)
 
-
+@unidentified_error_handler
 def prompt_string_input(msg):
     title = 'Please enter...'
     d_text = 'output'
@@ -28,7 +38,7 @@ def prompt_string_input(msg):
             sys.exit(0)
     return string        
 
-
+@unidentified_error_handler
 def select_workbook():
         path = easygui.fileopenbox(msg='Please select a ".xlsx" or "csv" file', title='Load File')
         try:
@@ -39,7 +49,7 @@ def select_workbook():
         else:
             return wb
 
-
+@unidentified_error_handler
 def load_point_codes_list():
     prompt_continue('''    First, select your code file.
     
@@ -49,10 +59,14 @@ def load_point_codes_list():
 
     def valid_code(code):
         pattern = r'[0-9]'
-        if re.search(pattern, code):
-            return False
-        else:
-            return True
+        try:
+            if re.search(pattern, code):
+                return False
+            else:
+                return True
+        except:
+            print('Issue with code point format. Is this a code file?')
+            sys.exit(0)
         
     codes = []
     invalid_codes_present = False
@@ -74,7 +88,7 @@ def load_point_codes_list():
 
     return codes
 
-
+@unidentified_error_handler
 def load_survey_points():
     prompt_continue('''    Please select your survey file
                     
@@ -115,7 +129,7 @@ def load_survey_points():
     
     return parse_points()
     
-
+@unidentified_error_handler
 def check_descriptions_against_codes(codes, points):
     unknown_points_list = []
     for point in points['parsed_desc_point_list']:
@@ -125,7 +139,7 @@ def check_descriptions_against_codes(codes, points):
                 continue
     return unknown_points_list
 
-
+@unidentified_error_handler
 def output_points(points, unknown_points):
     name = easygui.filesavebox()
 
@@ -140,9 +154,8 @@ def output_points(points, unknown_points):
     
     wb.save(f'{name}.xlsx')
     
-
 point_codes = load_point_codes_list()
 survey_points = load_survey_points()
-unkown_points = check_descriptions_against_codes(point_codes, survey_points)
+unknown_points = check_descriptions_against_codes(point_codes, survey_points)
 
-output_points(survey_points, unkown_points)
+output_points(survey_points, unknown_points)
