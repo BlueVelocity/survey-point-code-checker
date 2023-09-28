@@ -4,22 +4,31 @@ import easygui
 import sys
 import re
 
-def select_file(func):
-    def wrapper():
+def prompt_continue(msg):
+    title = 'Please confirm'
+    if easygui.ccbox(msg, title):
+        pass
+    else:
+        print('User cancelled action')
+        sys.exit(0)
+
+
+def select_workbook():
         path = easygui.fileopenbox(msg='Please select a ".xlsx" or "csv" file', title='Load File')
         try:
             wb = load_workbook(path)
         except:
             print('Selected file not ".xlsx" file type')
-            sys.exit()
+            sys.exit(0)
         else:
-            return func(path)
-    return wrapper
+            return wb
 
 
-@select_file
-def load_point_codes_list(path):
-    wb = load_workbook(path)
+def load_point_codes_list():
+    prompt_continue('''    First, select your code file.
+    
+    This file contains the point codes to be compared against (in column A)''')
+    wb = select_workbook()
     ws = wb.active
 
     def valid_code(code):
@@ -38,19 +47,23 @@ def load_point_codes_list(path):
             continue
         if (valid_code(code.value) == False):
             print(f'WARNING Invalid Code: {code}')
+            invalid_codes_present = True
         codes.append(code.value)
 
     if (invalid_codes_present == True):
-        selection = easygui.ynbox(msg='Invalid codes present, continue?')
-        if (selection == False):
-            sys.exit()
+        if easygui.ccbox(msg='Invalid codes present, continue?', title='Please Confirm'):
+            pass
+        else:
+            sys.exit(0)
 
     return codes
 
 
-@select_file  
-def load_survey_points(path):
-    wb = load_workbook(path)
+def load_survey_points():
+    prompt_continue('''    Please select your survey file
+                    
+    This file can be raw from the surveyor, but must be in .xlsx format''')
+    wb = select_workbook()
     ws = wb.active
 
     #parse survey points into lists [(pt_num, pt_desc)...] 
@@ -95,7 +108,3 @@ def check_descriptions_against_codes(codes, points):
                 unknown_points_list.append(point[0])
                 continue
     return unknown_points_list
-
-point_codes = load_point_codes_list()
-survey_points = load_survey_points()
-unkown_points = check_descriptions_against_codes(point_codes, survey_points)
