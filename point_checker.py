@@ -1,4 +1,5 @@
 import openpyxl
+from openpyxl import Workbook
 from openpyxl import load_workbook
 import easygui
 import sys
@@ -11,6 +12,21 @@ def prompt_continue(msg):
     else:
         print('User cancelled action')
         sys.exit(0)
+
+
+def prompt_string_input(msg):
+    title = 'Please enter...'
+    d_text = 'output'
+    check_file_name_validity_pattern = r"^[A-Za-z0-9]+([-_][A-Za-z0-9]+)*(\.[A-Za-z0-9]+)?$"
+    is_valid = False
+    while(is_valid == False):
+        string = easygui.enterbox(msg, title, d_text)
+        if (re.match(check_file_name_validity_pattern, string) != None):
+            is_valid = True
+        elif (string == None):
+            print('User entered nothing')
+            sys.exit(0)
+    return string        
 
 
 def select_workbook():
@@ -70,8 +86,8 @@ def load_survey_points():
     def parse_points():
         colA = ws['A']
         colE = ws['E']
-        errors_list = []
-        point_list = []
+        error_list = []
+        point_list = {}
         parsed_desc_point_list = []
         for num in range(len(colA)):
             pt_num = colA[num].value
@@ -89,13 +105,13 @@ def load_survey_points():
                 try:
                     parsed_desc = parse_description(desc)
                     parsed_desc_point_list.append((pt_num, parsed_desc))
-                    point_list.append((pt_num, desc))
+                    point_list[f'{pt_num}'] = desc
                 except:
-                    errors_list.append((pt_num, desc))
+                    error_list.append((pt_num, desc))
             else:
-                errors_list.append((pt_num, None))
+                error_list.append((pt_num, None))
 
-        return {'error_list': errors_list, 'point_list': point_list, 'parsed_desc_point_list': parsed_desc_point_list}
+        return {'error_list': error_list, 'point_list': point_list, 'parsed_desc_point_list': parsed_desc_point_list}
     
     return parse_points()
     
@@ -108,3 +124,25 @@ def check_descriptions_against_codes(codes, points):
                 unknown_points_list.append(point[0])
                 continue
     return unknown_points_list
+
+
+def output_points(points, unknown_points):
+    name = easygui.filesavebox()
+
+    wb = Workbook()
+    ws = wb.active
+
+    for index, pt_num in enumerate(unknown_points, 1):
+        point_list = points['point_list']
+        pt_desc = point_list[f'{pt_num}']
+        ws[f'A{index}'] = pt_num
+        ws[f'E{index}'] = pt_desc
+    
+    wb.save(f'{name}.xlsx')
+    
+
+point_codes = load_point_codes_list()
+survey_points = load_survey_points()
+unkown_points = check_descriptions_against_codes(point_codes, survey_points)
+
+output_points(survey_points, unkown_points)
