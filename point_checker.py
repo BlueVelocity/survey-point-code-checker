@@ -1,8 +1,8 @@
-import openpyxl
+
 from openpyxl import Workbook
 from openpyxl import load_workbook
-import easygui
-import sys
+from easygui import fileopenbox, filesavebox, enterbox, ccbox
+from sys import exit
 import re
 
 def unidentified_error_handler(func):
@@ -10,17 +10,17 @@ def unidentified_error_handler(func):
         try:
             return func(*args)
         except:
-            sys.exit(f'ExecutionError: Action stopped at "{func.__name__}"')
+            exit(f'ExecutionError: Action stopped at "{func.__name__}"')
     return wrapper
 
 @unidentified_error_handler
 def prompt_continue(msg):
     title = 'Please confirm'
-    if easygui.ccbox(msg, title):
+    if ccbox(msg, title):
         pass
     else:
         print('User action cancelled')
-        sys.exit(0)
+        exit(0)
 
 @unidentified_error_handler
 def prompt_string_input(msg):
@@ -29,22 +29,22 @@ def prompt_string_input(msg):
     check_file_name_validity_pattern = r"^[A-Za-z0-9]+([-_][A-Za-z0-9]+)*(\.[A-Za-z0-9]+)?$"
     is_valid = False
     while(is_valid == False):
-        string = easygui.enterbox(msg, title, d_text)
+        string = enterbox(msg, title, d_text)
         if (re.match(check_file_name_validity_pattern, string) != None):
             is_valid = True
         elif (string == None):
             print('User entered nothing')
-            sys.exit(0)
+            exit(0)
     return string        
 
 @unidentified_error_handler
 def select_workbook():
-        path = easygui.fileopenbox(msg='Please select a ".xlsx" or "csv" file', title='Load File')
+        path = fileopenbox(msg='Please select a ".xlsx" or "csv" file', title='Load File')
         try:
             wb = load_workbook(path)
         except:
             print('Selected file not ".xlsx" file type')
-            sys.exit(0)
+            exit(0)
         else:
             return wb
 
@@ -65,7 +65,7 @@ def load_point_codes_list():
                 return True
         except:
             print('Issue with code point format. Is this a code file?')
-            sys.exit(0)
+            exit(0)
         
     codes = []
     invalid_codes_present = False
@@ -80,10 +80,10 @@ def load_point_codes_list():
         codes.append(code.value)
 
     if (invalid_codes_present == True):
-        if easygui.ccbox(msg='Invalid codes present, continue?', title='Please Confirm'):
+        if ccbox(msg='Invalid codes present, continue?', title='Please Confirm'):
             pass
         else:
-            sys.exit(0)
+            exit(0)
 
     return codes
 
@@ -140,7 +140,7 @@ def check_descriptions_against_codes(codes, points):
 
 @unidentified_error_handler
 def output_points(points, unknown_points):
-    name = easygui.filesavebox()
+    name = filesavebox()
 
     wb = Workbook()
     ws = wb.active
