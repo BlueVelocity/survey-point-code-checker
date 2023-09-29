@@ -10,8 +10,7 @@ def unidentified_error_handler(func):
         try:
             return func(*args)
         except:
-            print(f'Action stopped at {func.__name__}')
-            sys.exit(0)
+            sys.exit(f'ExecutionError: Action stopped at "{func.__name__}"')
     return wrapper
 
 @unidentified_error_handler
@@ -20,7 +19,7 @@ def prompt_continue(msg):
     if easygui.ccbox(msg, title):
         pass
     else:
-        print('User cancelled action')
+        print('User action cancelled')
         sys.exit(0)
 
 @unidentified_error_handler
