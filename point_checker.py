@@ -43,14 +43,16 @@ def prompt_string_input(msg):
 
 @unidentified_error_handler
 def select_workbook():
-        path = fileopenbox(msg='Please select a ".xlsx" or "csv" file', title='Load File')
-        try:
-            wb = load_workbook(path)
-        except:
-            print('Selected file not ".xlsx" file type')
-            exit()
-        else:
-            return wb
+        is_valid = False
+        while (is_valid == False):
+            path = fileopenbox(msg='Please select a ".xlsx" file', title='Load File')
+            file_type = path[-5:]
+            if (file_type == '.xlsx'):
+                is_valid = True
+                wb = load_workbook(path)
+                return wb
+            else:
+                prompt_continue('Please select a .xlsx file')
 
 @unidentified_error_handler
 def load_point_codes_list():
