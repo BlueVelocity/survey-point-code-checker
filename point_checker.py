@@ -1,26 +1,33 @@
 
 from openpyxl import Workbook
 from openpyxl import load_workbook
-from easygui import fileopenbox, filesavebox, enterbox, ccbox
+from easygui import fileopenbox, filesavebox, enterbox, ccbox, msgbox
 from sys import exit
+from datetime import *
+import os
 import re
+
 
 def unidentified_error_handler(func):
     def wrapper(*args):
         try:
             return func(*args)
+        except SystemExit:
+            exit()
         except:
-            exit(f'ExecutionError: Action stopped at "{func.__name__}"')
+            msgbox(f'ExecutionError: See error log file located at: {os.getcwd()}/log.txt', 'Error Message', 'OK' )
+            with open('./log.txt', 'w') as log:
+                log.write(f'{datetime.now()}: ExecutionError: Action stopped at "{func.__name__}"\n')
+            exit()
     return wrapper
 
 @unidentified_error_handler
 def prompt_continue(msg):
     title = 'Please confirm'
-    if ccbox(msg, title):
+    if ccbox(msg, title, choices=('Continue', 'Exit')):
         pass
     else:
-        print('User action cancelled')
-        exit(0)
+        exit()
 
 @unidentified_error_handler
 def prompt_string_input(msg):
@@ -32,9 +39,6 @@ def prompt_string_input(msg):
         string = enterbox(msg, title, d_text)
         if (re.match(check_file_name_validity_pattern, string) != None):
             is_valid = True
-        elif (string == None):
-            print('User entered nothing')
-            exit(0)
     return string        
 
 @unidentified_error_handler
@@ -44,13 +48,13 @@ def select_workbook():
             wb = load_workbook(path)
         except:
             print('Selected file not ".xlsx" file type')
-            exit(0)
+            exit()
         else:
             return wb
 
 @unidentified_error_handler
 def load_point_codes_list():
-    prompt_continue('''    First, select your code file.
+    prompt_continue('''    Select your code file.
     
     This file contains the point codes to be compared against (in column A)''')
     wb = select_workbook()
@@ -58,33 +62,27 @@ def load_point_codes_list():
 
     def valid_code(code):
         pattern = r'[0-9]'
-        try:
-            if re.search(pattern, code):
-                return False
-            else:
-                return True
-        except:
-            print('Issue with code point format. Is this a code file?')
-            exit(0)
+        if re.search(pattern, code):
+            return False
+        else:
+            return True
         
     codes = []
-    invalid_codes_present = False
     column_to_check = 'A'
+    invalid_codes_present = False
+    invalid_codes = ''''''
 
     for code in ws[column_to_check]:
         if(code.value == None):
             continue
         if (valid_code(code.value) == False):
-            print(f'WARNING Invalid Code: {code}')
+            invalid_codes = invalid_codes + f'WARNING Invalid Code: {code} {code.value}\n'
             invalid_codes_present = True
         codes.append(code.value)
 
     if (invalid_codes_present == True):
-        if ccbox(msg='Invalid codes present, continue?', title='Please Confirm'):
-            pass
-        else:
-            exit(0)
-
+        prompt_continue(f"""Invalid codes present, continue?
+{invalid_codes}""")
     return codes
 
 @unidentified_error_handler
@@ -140,7 +138,7 @@ def check_descriptions_against_codes(codes, points):
 
 @unidentified_error_handler
 def output_points(points, unknown_points):
-    name = filesavebox()
+    name = filesavebox(msg='Save file as .xlsx', title='Save Output To File', default='output')
 
     wb = Workbook()
     ws = wb.active
